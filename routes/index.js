@@ -188,7 +188,7 @@ router.get("/confirmation/:id", async (req, res) => {
     if (date == cur || date + 2 == cur) {
       user.verification.verified = true;
       await user.save();
-      return res.redirect("http://localhost:3000/login");
+      return res.redirect("https://travelerscroll.netlify.app/login/");
     } else {
       return res.send("Confirmation link expired");
     }
@@ -252,7 +252,7 @@ router.get("/forgotpassword/:id", async (req, res) => {
     if (date == cur || date + 1 == cur) {
       user.verification.verified = true;
       await user.save();
-      return res.redirect(`http://localhost:3000/passwordreset/${user._id}`);
+      return res.redirect(`https://travelerscroll.netlify.app/passwordreset/${user._id}`);
     } else {
       return res.send("Confirmation link expired");
     }
