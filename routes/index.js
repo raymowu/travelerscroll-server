@@ -7,6 +7,7 @@ const nodemailer = require("nodemailer");
 const Builds = require("../models/Builds");
 const User = require("../models/user");
 const Sessions = require("../models/Sessions");
+const { rawListeners } = require("../models/Sessions");
 
 const getuser = async (req) => {
   //   let cookie = req.headers.cookie;
@@ -26,8 +27,8 @@ const getuser = async (req) => {
 };
 
 const Authenticate = async (req, res, next) => {
-  const user = await getuser(req);
-  if (!user) {
+  // const user = await getuser(req);
+  if (!req.session.user) {
     res.send({ status: "err", message: "Login Required" });
   } else {
     next();
@@ -58,7 +59,7 @@ router.get("/", (req, res) => {
 });
 
 const SendEmail = (id, email) => {
-  const url = `https://travelerscroll.herokuapp.com/confirmation/${id}`;
+  const url = `https://travelers-scroll.herokuapp.com/confirmation/${id}`;
 
   transporter.sendMail(
     {
@@ -79,7 +80,7 @@ const ReSendEmail = async (id, email) => {
   user.verification.date = new Date().toLocaleDateString();
   await user.save();
 
-  const url = `https://travelerscroll.herokuapp.com/confirmation/${id}`;
+  const url = `https://travelers-scroll.herokuapp.com/confirmation/${id}`;
 
   transporter.sendMail(
     {
@@ -188,7 +189,7 @@ router.get("/confirmation/:id", async (req, res) => {
     if (date == cur || date + 2 == cur) {
       user.verification.verified = true;
       await user.save();
-      return res.redirect("https://travelerscroll.netlify.app/login/");
+      return res.redirect("https://travelerscroll.netlify.app/login");
     } else {
       return res.send("Confirmation link expired");
     }
@@ -211,7 +212,7 @@ router.post("/forgotpassword", async (req, res) => {
   let user = await User.find({ email: req.body.email });
   user = user[0]; // email is unique so there is only 1 user anyway
   if (user && user.verification.verified) {
-    const url = `https://travelerscroll.herokuapp.com/forgotpassword/${user._id}`;
+    const url = `https://travelers-scroll.herokuapp.com/forgotpassword/${user._id}`;
 
     user.verification.date = new Date().toLocaleDateString();
     await user.save();
@@ -273,8 +274,8 @@ router.post("/resetpassword/:id", async (req, res) => {
 });
 
 router.get("/current-user", Authenticate, async (req, res) => {
-  const user = await getuser(req);
-  if (user) {
+  // const user = await getuser(req);
+  if (req.session.user) {
     return res.send({ status: "ok", user: user });
   }
   return res.send({ status: "ok", user: null });
