@@ -8,24 +8,22 @@ const Builds = require("../models/Builds");
 const User = require("../models/user");
 const Sessions = require("../models/Sessions");
 
-
 const getuser = async (req) => {
-//   let cookie = req.headers.cookie;
-//   const values = cookie.split(';').reduce((res, item) => {
-//     const data = item.trim().split('=');
-//     return { ...res, [data[0]]: data[1] };
-// }, {});
+  //   let cookie = req.headers.cookie;
+  //   const values = cookie.split(';').reduce((res, item) => {
+  //     const data = item.trim().split('=');
+  //     return { ...res, [data[0]]: data[1] };
+  // }, {});
   let sid = req.cookies["connect.sid"].split(":")[1].split(".")[0];
-  let user = await Sessions.findOne({_id: sid});
+  let user = await Sessions.findOne({ _id: sid });
   // console.log(user)
   // sid = sid.split(".")[0].split("%")[1];
-  if(user){
+  if (user) {
     return user.user;
-  }
-  else{
+  } else {
     return false;
   }
-}
+};
 
 const Authenticate = async (req, res, next) => {
   const user = await getuser(req);
@@ -60,7 +58,7 @@ router.get("/", (req, res) => {
 });
 
 const SendEmail = (id, email) => {
-  const url = `https://travelers-scroll.herokuapp.com/confirmation/${id}`;
+  const url = `https://travelerscroll.herokuapp.com/confirmation/${id}`;
 
   transporter.sendMail(
     {
@@ -81,7 +79,7 @@ const ReSendEmail = async (id, email) => {
   user.verification.date = new Date().toLocaleDateString();
   await user.save();
 
-  const url = `https://travelers-scroll.herokuapp.com/confirmation/${id}`;
+  const url = `https://travelerscroll.herokuapp.com/confirmation/${id}`;
 
   transporter.sendMail(
     {
@@ -213,7 +211,7 @@ router.post("/forgotpassword", async (req, res) => {
   let user = await User.find({ email: req.body.email });
   user = user[0]; // email is unique so there is only 1 user anyway
   if (user && user.verification.verified) {
-    const url = `https://travelers-scroll.herokuapp.com/forgotpassword/${user._id}`;
+    const url = `https://travelerscroll.herokuapp.com/forgotpassword/${user._id}`;
 
     user.verification.date = new Date().toLocaleDateString();
     await user.save();
@@ -276,11 +274,10 @@ router.post("/resetpassword/:id", async (req, res) => {
 
 router.get("/current-user", Authenticate, async (req, res) => {
   const user = await getuser(req);
-  if(user){
+  if (user) {
     return res.send({ status: "ok", user: user });
   }
   return res.send({ status: "ok", user: null });
-  
 });
 
 // logout rout
