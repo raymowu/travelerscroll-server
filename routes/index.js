@@ -166,7 +166,7 @@ router.post("/login", async (req, res) => {
     if (valid) {
       const info = { id: user._id, username: user.username };
       const token = jwt.sign(info, jwtsecret);
-      req.session.token = token;
+      // req.session.token = token;
       return res.send({ status: "ok", token: token });
     }
   }
@@ -293,11 +293,11 @@ router.get("/current-user", Authenticate, async (req, res) => {
 
 // logout rout
 router.get("/logout", async (req, res) => {
-  req.session.destroy();
-  let user = await Sessions.findOne({ [`session.token`]: token });
-  if (user) {
-    await Session.findByIdAndDelete(user._id);
-  }
+  // req.session.destroy();
+  // let user = await Sessions.findOne({ [`session.token`]: token });
+  // if (user) {
+  //   await Session.findByIdAndDelete(user._id);
+  // }
   return res.send({ status: "ok" });
 });
 
