@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 
 const Builds = require("../models/Builds");
 const Comments = require("../models/Comment");
@@ -12,36 +12,34 @@ const jwtsecret = "secretmsghere";
 
 const getuser = async (req) => {
   let cookie = req.headers.cookie;
-  const values = cookie.split(';').reduce((res, item) => {
-    const data = item.trim().split('=');
+  const values = cookie.split(" ").reduce((res, item) => {
+    const data = item.trim().split("=");
     return { ...res, [data[0]]: data[1] };
   }, {});
-  if(values.token && values.token !== null){
-    let token = values.token
+  if (values.token && values.token !== null) {
+    let token = values.token;
     let user = await Sessions.findOne({ [`session.token`]: token });
-    if(user.session.token){
+    if (user.session.token) {
       return user.session.token;
-    }
-    else{
+    } else {
       return false;
     }
   }
   return false;
-}
+};
 
 async function getUsername(token) {
-    const ret = await jwt.verify(token, jwtsecret, async (err, user) => {
-    if(err){ 
-      console.log(err)
+  const ret = await jwt.verify(token, jwtsecret, async (err, user) => {
+    if (err) {
+      console.log(err);
       return null;
-    }
-    else{
+    } else {
       const ret = await User.findById(user.id);
-      if (ret){
-        return {id: ret.id, username: ret.username}
+      if (ret) {
+        return { id: ret.id, username: ret.username };
       }
-    }    
-  });  
+    }
+  });
   return ret;
 }
 
@@ -88,7 +86,7 @@ router.post("/", Authenticate, async (req, res) => {
     },
     (err, build) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         return res.send({ status: "err", err: err });
       } else {
         if (build) {
@@ -178,18 +176,16 @@ router.post("/build/:id/newComment", Authenticate, async (req, res) => {
     },
     async (err, comment) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         return res.send({ status: "err", err: err });
       } else {
         if (comment) {
           const build = await Builds.findById(req.params.id);
           if (build) {
-
             build.comments.push(comment);
             await build.populate("comments");
             build.save();
             return res.send({ status: "ok", build: build });
-
           }
         } else {
           res.send({ status: "err", err: "idek" });
@@ -203,19 +199,18 @@ router.post("/build/:id/delete", Authenticate, async (req, res) => {
   const token = await getuser(req);
   const user = await getUsername(token);
   let build = await Builds.findById(req.params.id);
-  if(build){
-    await Comments.deleteMany({_id: {$in: build.comments}})
-    for(i of build.likedUsers){
-      let user = await User.findById(i)
-      if(user){
+  if (build) {
+    await Comments.deleteMany({ _id: { $in: build.comments } });
+    for (i of build.likedUsers) {
+      let user = await User.findById(i);
+      if (user) {
         user.likedBuilds.splice(user.likedBuilds.indexOf(build._id), 1);
-        await user.save()
+        await user.save();
       }
-      
     }
   }
   await Builds.findByIdAndDelete(req.params.id);
-  return res.send({status: "ok", user: user.username});
+  return res.send({ status: "ok", user: user.username });
 });
 
 module.exports = router;
