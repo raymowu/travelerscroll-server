@@ -40,12 +40,31 @@ async function getUsername(token) {
 }
 
 const Authenticate = async (req, res, next) => {
+<<<<<<< HEAD
   const token = await getuser(req);
   if (!token) {
     res.send({ status: "err", message: "Login Required" });
   } else {
     next();
+=======
+  // const token = await getuser(req);
+  // if (!token) {
+  //   res.send({ status: "err", message: "Login Required" });
+  // } else {
+  //   next();
+  // }
+  let cookie = req.headers.cookie;
+  if (cookie) {
+    const values = cookie.split(";").reduce((res, item) => {
+      const data = item.trim().split("=");
+      return { ...res, [data[0]]: data[1] };
+    }, {});
+    if (values["token"] && values["token"] !== null) {
+      next()
+    }
+>>>>>>> 7abd98dff833193281222b0272431d0cf789822f
   }
+  return res.send({status: "err", values: values, cookies: cookie});
 };
 
 router.post("/", Authenticate, async (req, res) => {
