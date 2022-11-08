@@ -10,7 +10,7 @@ const Sessions = require("../models/Sessions");
 
 const jwtsecret = "secretmsghere";
 
-const getToken = async (req) => {
+const getuser = async (req) => {
   let cookie = req.headers.cookie;
   if (cookie) {
     const values = cookie.split(";").reduce((res, item) => {
@@ -18,7 +18,7 @@ const getToken = async (req) => {
       return { ...res, [data[0]]: data[1] };
     }, {});
     if (values["token"] && values["token"] !== null) {
-      return token
+      return token;
     }
   }
   return false;
@@ -40,7 +40,7 @@ async function getUsername(token) {
 }
 
 const Authenticate = async (req, res, next) => {
-  const token = await getToken(req);
+  const token = await getuser(req);
   if (!token) {
     res.send({ status: "err", message: "Login Required" });
   } else {
