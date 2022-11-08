@@ -19,7 +19,7 @@ const getuser = async (req) => {
   if (values.token && values.token !== null) {
     let token = values.token;
     let user = await Sessions.findOne({ [`session.token`]: token });
-    if (user.session.token) {
+    if (user) {
       return user.session.token;
     } else {
       return false;
