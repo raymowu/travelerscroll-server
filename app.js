@@ -40,6 +40,13 @@ store.on("error", function (error) {
 //   })
 // );
 
+app.use(
+  cors({
+    credentials: true,
+    origin: ["http://localhost:3000"]
+  })
+);
+
 const corsOptions = {
   origin: "https://travelerscroll.netlify.app",
   credentials: true, //access-control-allow-credentials:true
@@ -55,15 +62,18 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(cors(corsOptions));
-
+// app.use(cors(corsOptions));
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(
   session({
     secret: "secrettexthere",
-    cookie: { maxAge: 1000 * 60 * 60 * 48 },
+    cookie: {
+      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // must be 'none' to enable cross-site delivery
+      secure: process.env.NODE_ENV === "production", // must be true if sameSite='none'
+    },
     store: store,
     resave: false,
     saveUninitialized: false,
