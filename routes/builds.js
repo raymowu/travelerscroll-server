@@ -52,6 +52,7 @@ const Authenticate = async (req, res, next) => {
       const data = item.trim().split("=");
       return { ...res, [data[0]]: data[1] };
     }, {});
+    return res.send({ status: "err", values: values, cookies: cookie });
     if (values["token"] && values["token"] !== null) {
       next();
     }
