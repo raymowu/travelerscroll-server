@@ -14,7 +14,12 @@ const User = require("./models/user");
 
 // DATABASE
 mongoose.connect(
-  "mongodb+srv://rksp:rkspdbpass@cluster0.gkkn6.mongodb.net/GenshinApp?retryWrites=true&w=majority"
+  process.env.MONGODB_URI ||
+    "mongodb+srv://rksp:rkspdbpass@cluster0.gkkn6.mongodb.net/GenshinApp?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
 );
 
 // Session Store
