@@ -10,7 +10,7 @@ const bcrypt = require("bcryptjs");
 const session = require("express-session");
 var MongoDBStore = require("connect-mongodb-session")(session);
 
-app.use(express.static(path.join(__dirname + "/public" + "index.html")));
+app.use(express.static(path.join(__dirname + "/public")));
 
 // MODELS
 const User = require("./models/user");
