@@ -18,7 +18,7 @@ const getuser = async (req) => {
       return { ...res, [data[0]]: data[1] };
     }, {});
     if (values["token"] && values["token"] !== null) {
-      return token;
+      return values.token;
     }
   }
   return false;
@@ -40,23 +40,13 @@ async function getUsername(token) {
 }
 
 const Authenticate = async (req, res, next) => {
-  // const token = await getuser(req);
-  // if (!token) {
-  //   res.send({ status: "err", message: "Login Required" });
-  // } else {
-  //   next();
-  // }
-  let cookie = req.headers.cookie;
-  if (cookie) {
-    const values = cookie.split(";").reduce((res, item) => {
-      const data = item.trim().split("=");
-      return { ...res, [data[0]]: data[1] };
-    }, {});
-    if (values["token"] && values["token"] !== null) {
-      next();
-    }
+  const token = await getuser(req);
+  if (!token) {
+    res.send({ status: "err", message: "Login Required" });
+  } else {
+    next();
   }
-  return res.send({ status: "err", values: values, cookies: cookie });
+  return res.send({ status: "err", headers: req.headers });
 };
 
 router.post("/", Authenticate, async (req, res) => {
