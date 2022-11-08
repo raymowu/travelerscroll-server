@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -8,6 +9,8 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
 var MongoDBStore = require("connect-mongodb-session")(session);
+
+app.use(express.static(path.join(__dirname + "/public")));
 
 // MODELS
 const User = require("./models/user");
@@ -45,7 +48,7 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000"],
+    origin: ["https://travelerscroll.herokuapp.com"],
   })
 );
 
