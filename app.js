@@ -40,6 +40,8 @@ store.on("error", function (error) {
 //   })
 // );
 
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     credentials: true,
@@ -53,32 +55,32 @@ app.use(
 //   optionSuccessStatus: 200,
 // };
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 
 // app.use(cors(corsOptions));
-app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  session({
-    secret: "secrettexthere",
-    cookie: {
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // must be 'none' to enable cross-site delivery
-      secure: process.env.NODE_ENV === "production", // must be true if sameSite='none'
-    },
-    store: store,
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+// app.use(
+//   session({
+//     secret: "secrettexthere",
+//     cookie: {
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // must be 'none' to enable cross-site delivery
+//       secure: process.env.NODE_ENV === "production", // must be true if sameSite='none'
+//     },
+//     store: store,
+//     resave: false,
+//     saveUninitialized: false,
+//   })
+// );
 
 const Authenticate = (req, res, next) => {
   if (!req.session.user) {
