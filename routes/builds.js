@@ -12,7 +12,7 @@ const jwtsecret = "secretmsghere";
 
 const getuser = async (req) => {
   let cookie = req.headers.cookie;
-  const values = cookie.split(" ").reduce((res, item) => {
+  const values = cookie.split(";").reduce((res, item) => {
     const data = item.trim().split("=");
     return { ...res, [data[0]]: data[1] };
   }, {});
