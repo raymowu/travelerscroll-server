@@ -8,6 +8,7 @@ const Builds = require("../models/Builds");
 const User = require("../models/user");
 const Sessions = require("../models/Sessions");
 const { rawListeners } = require("../models/Sessions");
+const Session = require("../models/Sessions");
 
 const jwtsecret = "secretmsghere";
 
@@ -291,8 +292,12 @@ router.get("/current-user", Authenticate, async (req, res) => {
 });
 
 // logout rout
-router.get("/logout", (req, res) => {
+router.get("/logout", async (req, res) => {
   req.session.destroy();
+  let user = await Sessions.findOne({ [`session.token`]: token });
+  if (user) {
+    await Session.findByIdAndDelete(user._id);
+  }
   return res.send({ status: "ok" });
 });
 
