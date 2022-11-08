@@ -47,7 +47,6 @@ const Authenticate = async (req, res, next) => {
   //   next();
   // }
   let cookie = req.headers.cookie;
-  return res.send(cookie);
   if (cookie) {
     const values = cookie.split(";").reduce((res, item) => {
       const data = item.trim().split("=");
