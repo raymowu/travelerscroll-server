@@ -194,7 +194,7 @@ router.get("/confirmation/:id", async (req, res) => {
     if (date == cur || date + 2 == cur) {
       user.verification.verified = true;
       await user.save();
-      return res.redirect("https://travelerscroll.netlify.app//login");
+      return res.redirect("http:localhost:3000/login");
     } else {
       return res.send("Confirmation link expired");
     }
