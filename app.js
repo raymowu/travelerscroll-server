@@ -34,12 +34,12 @@ store.on("error", function (error) {
   console.log(error);
 });
 
-// app.use(
-//   cors({
-//     origin: "https://travelerscroll.netlify.app", // <-- location of the react app were connecting to
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: "https://travelerscroll.netlify.app", // <-- location of the react app were connecting to
+    credentials: true,
+  })
+);
 
 // app.set("trust proxy", 1);
 
@@ -56,14 +56,14 @@ store.on("error", function (error) {
 //   optionSuccessStatus: 200,
 // };
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://travelerscroll.netlify.app"); // update to match the domain you will make the request from
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "https://travelerscroll.netlify.app"); // update to match the domain you will make the request from
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 
 // app.use(cors(corsOptions));
 
