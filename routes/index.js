@@ -299,7 +299,7 @@ router.post("/resetpassword/:id", async (req, res) => {
 router.get("/get-user/:token", async (req, res) => {
   if (!req.params.token) return res.send({status: "err"})
   const user = await getUsername(req.params.token);
-  return res.send({userId: user.id});
+  return res.send({status: "ok", userId: user.id});
   //   jwt.verify(req.headers.cookie, jwtsecret, (err, user) => {
   //     if(err){
   //       console.log(err)
