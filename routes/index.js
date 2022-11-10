@@ -29,6 +29,20 @@ const getuser = async (req) => {
   }
   return false;
 };
+async function getUsername(token) {
+  const ret = await jwt.verify(token, jwtsecret, async (err, user) => {
+    if (err) {
+      console.log(err);
+      return null;
+    } else {
+      const ret = await User.findById(user.id);
+      if (ret) {
+        return { id: ret.id, username: ret.username };
+      }
+    }
+  });
+  return ret;
+}
 
 const Authenticate = async (req, res, next) => {
   const user = await getuser(req);
@@ -79,12 +93,12 @@ const SendEmail = (id, email) => {
   );
 };
 
-const ReSendEmail = async (id, email) => {
+const ReSendEmail = async (token, email) => {
   let user = await User.findById(id);
   user.verification.date = new Date().toLocaleDateString();
   await user.save();
 
-  const url = `https://travelerscroll.herokuapp.com/confirmation/${id}`;
+  const url = `https://travelerscroll.herokuapp.com/confirmation/${token}`;
 
   transporter.sendMail(
     {
@@ -122,12 +136,10 @@ router.post("/register", async (req, res) => {
         email,
       });
       await newUser.save();
-      req.session.user = req.session.user = {
-        id: newUser._id,
-        username: newUser.username,
-      };
-      SendEmail(newUser._id, newUser.email);
-      res.send({ status: "ok" });
+      const info = { id: newUser._id, username: newUser.username };
+      const token = jwt.sign(info, jwtsecret);
+      SendEmail(token, newUser.email);
+      res.send({ status: "ok", token: token });
     }
   });
 });
@@ -149,11 +161,9 @@ router.post("/gregister", async (req, res) => {
       await newUser.save();
       newUser.verification.verified = true;
       await newUser.save();
-      req.session.user = req.session.user = {
-        id: newUser._id,
-        username: newUser.username,
-      };
-      return res.send({ status: "ok" });
+      const info = { id: newUser._id, username: newUser.username };
+      const token = jwt.sign(info, jwtsecret);
+      return res.send({ status: "ok", token: token });
     }
   });
 });
@@ -179,15 +189,17 @@ router.post("/glogin", async (req, res) => {
   if (user) {
     const valid = await bcrypt.compare(gid, user.password);
     if (valid) {
-      req.session.user = { id: user._id, username: user.username };
-      return res.send({ status: "ok" });
+      const info = { id: user._id, username: user.username };
+      const token = jwt.sign(info, jwtsecret);
+      return res.send({ status: "ok", token: token });
     }
   }
   return res.send({ status: "err", msg: "There was an error" });
 });
 
-router.get("/confirmation/:id", async (req, res) => {
-  let user = await User.findById(req.params.id);
+router.get("/confirmation/:token", async (req, res) => {
+  let userInfo = await getUsername(req.params.token);
+  let user = await User.findById(userInfo.id);
   if (user) {
     let date = parseInt(returndate(user.verification.date));
     let currentDate = new Date().toLocaleDateString();
@@ -207,7 +219,9 @@ router.get("/confirmation/:id", async (req, res) => {
 router.post("/resendConfirmation/:id", async (req, res) => {
   let user = await User.findById(req.params.id);
   if (user) {
-    ReSendEmail(user._id, user.email);
+    const info = { id: user._id, username: user.username };
+    const token = jwt.sign(info, jwtsecret);
+    ReSendEmail(token, user.email);
     return res.send("email sent");
   } else {
     return res.send({ status: "err", msg: "couldnt find user" });
@@ -218,7 +232,9 @@ router.post("/forgotpassword", async (req, res) => {
   let user = await User.find({ email: req.body.email });
   user = user[0]; // email is unique so there is only 1 user anyway
   if (user && user.verification.verified) {
-    const url = `https://travelerscroll.herokuapp.com/forgotpassword/${user._id}`;
+    const info = { id: user._id, username: user.username };
+    const token = jwt.sign(info, jwtsecret);
+    const url = `https://travelerscroll.herokuapp.com/forgotpassword/${token}`;
 
     user.verification.date = new Date().toLocaleDateString();
     await user.save();
@@ -250,8 +266,9 @@ router.post("/forgotpassword", async (req, res) => {
   }
 });
 
-router.get("/forgotpassword/:id", async (req, res) => {
-  let user = await User.findById(req.params.id);
+router.get("/forgotpassword/:token", async (req, res) => {
+  let userInfo = await getUsername(req.params.token);
+  let user = await User.findById(userInfo.id);
   if (user) {
     let date = parseInt(returndate(user.verification.date));
     let currentDate = new Date().toLocaleDateString();
@@ -279,9 +296,10 @@ router.post("/resetpassword/:id", async (req, res) => {
   }
 });
 
-router.get("/current-user", Authenticate, async (req, res) => {
-  const user = await getuser(req);
-  res.send(user);
+router.get("/get-user/:token", async (req, res) => {
+  if (!req.params.token) return res.send({status: "err"})
+  const user = await getUsername(req.params.token);
+  return res.send({userId: user.id});
   //   jwt.verify(req.headers.cookie, jwtsecret, (err, user) => {
   //     if(err){
   //       console.log(err)
