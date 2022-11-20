@@ -6,58 +6,27 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const Builds = require("../models/Builds");
 const User = require("../models/user");
-const Sessions = require("../models/Sessions");
-const { rawListeners } = require("../models/Sessions");
-const Session = require("../models/Sessions");
 
 const jwtsecret = "secretmsghere";
 
-const getuser = async (req) => {
-  let cookie = req.headers.cookie;
-  const values = cookie.split(";").reduce((res, item) => {
-    const data = item.trim().split("=");
-    return { ...res, [data[0]]: data[1] };
-  }, {});
-  if (values.token && values.token !== null) {
-    let token = values.token;
-    let user = await Sessions.findOne({ [`session.token`]: token });
-    if (user.session.token) {
-      return user.session.token;
-    } else {
-      return false;
-    }
-  }
-  return false;
-};
-async function getUsername(token) {
+async function getUsername(res, token) {
   const ret = await jwt.verify(token, jwtsecret, async (err, user) => {
     if (err) {
-      console.log(err);
-      return null;
+      return res.send({status: "err", message: "Unable to verify user"})
     } else {
       const ret = await User.findById(user.id);
       if (ret) {
         return { id: ret.id, username: ret.username };
+      }
+      else{
+        return res.send({status: "err", message: "User doesn't exist in our database"})
       }
     }
   });
   return ret;
 }
 
-const Authenticate = async (req, res, next) => {
-  const user = await getuser(req);
-  if (!user) {
-    res.send({ status: "err", message: "Login Required" });
-  } else {
-    next();
-  }
-};
 
-// function createJson(id){
-// 	let date = new Date().toLocaleDateString();
-// 	let ret = JSON.stringify({id: id, date: date})
-// 	return ret;
-// }
 
 function returndate(date) {
   let a = date.indexOf("/");
@@ -176,7 +145,6 @@ router.post("/login", async (req, res) => {
     if (valid) {
       const info = { id: user._id, username: user.username };
       const token = jwt.sign(info, jwtsecret);
-      // req.session.token = token;
       return res.send({ status: "ok", token: token });
     }
   }
@@ -198,7 +166,7 @@ router.post("/glogin", async (req, res) => {
 });
 
 router.get("/confirmation/:token", async (req, res) => {
-  let userInfo = await getUsername(req.params.token);
+  let userInfo = await getUsername(res, req.params.token);
   let user = await User.findById(userInfo.id);
   if (user) {
     let date = parseInt(returndate(user.verification.date));
@@ -267,7 +235,7 @@ router.post("/forgotpassword", async (req, res) => {
 });
 
 router.get("/forgotpassword/:token", async (req, res) => {
-  let userInfo = await getUsername(req.params.token);
+  let userInfo = await getUsername(res, req.params.token);
   let user = await User.findById(userInfo.id);
   if (user) {
     let date = parseInt(returndate(user.verification.date));
@@ -298,24 +266,12 @@ router.post("/resetpassword/:id", async (req, res) => {
 
 router.get("/get-user/:token", async (req, res) => {
   if (!req.params.token) return res.send({ status: "ok" });
-  const user = await getUsername(req.params.token);
+  const user = await getUsername(res, req.params.token);
   return res.send({ status: "ok", userId: user.id });
-  //   jwt.verify(req.headers.cookie, jwtsecret, (err, user) => {
-  //     if(err){
-  //       console.log(err)
-  //       return res.send({status: "err"});
-  //     }
-  //     return res.send({user: user})
-  //   });
 });
 
 // logout rout
 router.get("/logout", async (req, res) => {
-  // req.session.destroy();
-  // let user = await Sessions.findOne({ [`session.token`]: token });
-  // if (user) {
-  //   await Session.findByIdAndDelete(user._id);
-  // }
   return res.send({ status: "ok" });
 });
 
@@ -324,11 +280,6 @@ router.get("/profile/:id", async (req, res) => {
     if (err) {
       res.send({ status: "err", message: "There was an issue with" });
     }
-    // if(req.session.user){
-    // 	if(user._id == req.session.user.id){
-    // 		return res.send({status: "ok", user: {username: user.username}, modifier: true});
-    // 	}
-    // }
     if (!user) {
       return res.send({ status: "err", message: "Unable to find user" });
     } else {

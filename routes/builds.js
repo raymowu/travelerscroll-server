@@ -4,25 +4,10 @@ const jwt = require("jsonwebtoken");
 
 const Builds = require("../models/Builds");
 const Comments = require("../models/Comment");
-const user = require("../models/user");
 const User = require("../models/user");
-const Sessions = require("../models/Sessions");
 
 const jwtsecret = "secretmsghere";
 
-const getuser = async (req) => {
-  let cookie = req.headers.cookie;
-  if (cookie) {
-    const values = cookie.split(";").reduce((res, item) => {
-      const data = item.trim().split("=");
-      return { ...res, [data[0]]: data[1] };
-    }, {});
-    if (values["token"] && values["token"] !== null) {
-      return values.token;
-    }
-  }
-  return false;
-};
 
 async function getUsername(token) {
   const ret = await jwt.verify(token, jwtsecret, async (err, user) => {
@@ -39,18 +24,21 @@ async function getUsername(token) {
   return ret;
 }
 
-// const Authenticate = async (req, res, next) => {
-//   const token = await getuser(req);
-//   if (!token) {
-//     res.send({ status: "err", message: "Login Required", headers: req.headers });
-//   } else {
-//     next();
-//   }
-//   return res.send({ status: "err", headers: req.headers });
-// };
 const Authenticate = async (res, token) => {
   if(!token){
     return res.send({status: "err", message: "Not logged in"})
+  }
+  else{
+      await jwt.verify(token, jwtsecret, async (err, user) => {
+        if (err) {
+          return res.send({status: "err", message: err})
+        } else {
+          const ret = await User.findById(user.id);
+          if (!ret) {
+            res.send({status: "err", message: "No user found"})
+          }
+        }
+    });
   }
 }
 
@@ -119,11 +107,6 @@ router.get("/build/:id", async (req, res) => {
     } else {
       if (build) {
         await build.populate("comments");
-        // // const user = await getUsername(req.params.token);
-        // console.log(req.body)
-        // if (user) {
-        //   return res.send({ status: "ok", build: build, userId: user.id });
-        // }
         return res.send({ status: "ok", build: build, userId: "none" });
       }
     }
@@ -145,22 +128,14 @@ router.post("/build/:id/liked", async (req, res) => {
       build.likes++;
       await build.save();
       await user.save();
-      // await Builds.findByIdAndUpdate(build._id, { likes: build.likes + 1 });
       return res.send({ status: "ok", build: build });
     } else {
-      // if(user.likedBuilds.includes(build._id)){
       build.likedUsers.splice(build.likedUsers.indexOf(user._id), 1);
       user.likedBuilds.splice(user.likedBuilds.indexOf(build._id), 1);
       build.likes--;
       await build.save();
       await user.save();
-
-      // await Builds.findByIdAndUpdate(build._id, { likes: likes });
       return res.send({ status: "ok", build: build });
-      // }
-      // else{
-      //   return res.send({status: "err", message: "Can't dislike a build you havent liked"});
-      // }
     }
   }
 });
@@ -201,9 +176,11 @@ router.post("/build/:id/newComment", async (req, res) => {
 router.post("/build/:id/delete", async (req, res) => {
   const { token } = req.body;
   await Authenticate(res, token)
-  const user = await getUsername(token);
+  const userInfo = await getUsername(token);
   let build = await Builds.findById(req.params.id);
+  let user = await user.findById(userInfo.id)
   if (build) {
+    if(user._id !== build.Author.id) return res.send({status: "err", message: "Can not delete build you didnt create"})
     await Comments.deleteMany({ _id: { $in: build.comments } });
     for (i of build.likedUsers) {
       let user = await User.findById(i);

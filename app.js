@@ -1,14 +1,8 @@
 const express = require("express");
-const path = require("path");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
-var passport = require("passport");
-const passportLocal = require("passport-local").Strategy;
 const cookieParser = require("cookie-parser");
-const bcrypt = require("bcryptjs");
-const session = require("express-session");
-var MongoDBStore = require("connect-mongodb-session")(session);
 
 // MODELS
 const User = require("./models/user");
@@ -23,16 +17,15 @@ mongoose.connect(
   }
 );
 
-// Session Store
-const store = new MongoDBStore({
-  uri: "mongodb+srv://rksp:rkspdbpass@cluster0.gkkn6.mongodb.net/GenshinApp?retryWrites=true&w=majority",
-  collection: "Sessions",
-  clear_interval: 3600,
-});
-// Catch errors
-store.on("error", function (error) {
-  console.log(error);
-});
+// has cors error on login VVVVVVVV
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 
 app.use(
   cors({
@@ -41,55 +34,8 @@ app.use(
   })
 );
 
-// app.set("trust proxy", 1);
-
-// app.use(
-//   cors({
-//     credentials: true,
-//     origin: ["https://travelerscroll.herokuapp.com"],
-//   })
-// );
-
-// const corsOptions = {
-//   origin: "https://travelerscroll.netlify.app",
-//   credentials: true, //access-control-allow-credentials:true
-//   optionSuccessStatus: 200,
-// };
-
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "https://travelerscroll.netlify.app"); // update to match the domain you will make the request from
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
-
-// app.use(cors(corsOptions));
-
 app.use(express.json());
 app.use(cookieParser());
-
-// app.use(
-//   session({
-//     secret: "secrettexthere",
-//     cookie: {
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // must be 'none' to enable cross-site delivery
-//       secure: process.env.NODE_ENV === "production", // must be true if sameSite='none'
-//     },
-//     store: store,
-//     resave: true,
-//     saveUninitialized: false,
-//   })
-// );
-
-const Authenticate = (req, res, next) => {
-  if (!req.session.user) {
-    res.send({ status: "err", message: "Login Required" });
-  } else {
-    next();
-  }
-};
 
 // Routes
 const indexRoutes = require("./routes/index.js");
