@@ -178,9 +178,10 @@ router.post("/build/:id/delete", async (req, res) => {
   await Authenticate(res, token)
   const userInfo = await getUsername(token);
   let build = await Builds.findById(req.params.id);
-  let user = await user.findById(userInfo.id)
-  if (build) {
-    if(user._id !== build.Author.id) return res.send({status: "err", message: "Can not delete build you didnt create"})
+  let user = await User.findById(userInfo.id)
+  // return res.send({status: "ok", user: user._id, build: build.Author.id})
+  if (build && user) {
+    if(!user._id.equals(build.Author.id)) return res.send({status: "err", message: "Can not delete build you didnt create"})
     await Comments.deleteMany({ _id: { $in: build.comments } });
     for (i of build.likedUsers) {
       let user = await User.findById(i);
@@ -189,9 +190,15 @@ router.post("/build/:id/delete", async (req, res) => {
         await user.save();
       }
     }
+    await Builds.findByIdAndDelete(req.params.id);
+    return res.send({ status: "ok", user: user.username });
   }
-  await Builds.findByIdAndDelete(req.params.id);
-  return res.send({ status: "ok", user: user.username });
+  return res.send({status: "err", message: "unabe to find user or build"})
+  
+  
 });
+
+
+
 
 module.exports = router;
