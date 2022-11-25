@@ -30,7 +30,7 @@ mongoose.connect(
 
 app.use(
   cors({
-    origin: "https://travelerscroll.netlify.app", // <-- location of the react app were connecting to
+    origin: "*", // <-- location of the react app were connecting to
     credentials: true,
   })
 );
@@ -65,6 +65,6 @@ app.get("/", (req, res) => {
 
 // process.env.PORT
 
-app.listen(process.env.PORT, () => {
-  console.log("Server is running on");
+app.listen(5001, () => {
+  console.log("Server is running on port 5001");
 });
