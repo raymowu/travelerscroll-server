@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 // MODELS
 const User = require("./models/user");
@@ -34,6 +35,19 @@ app.use(
   })
 );
 
+const _dirname = path.dirname("");
+const buildPath = path.join(_dirname, "../Client/build");
+
+app.use(express.static(buildPath));
+
+app.get("/*", function (req, res) {
+  res.sendFile(path.join(__dirname, "../Client/build/index.html"), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -52,5 +66,5 @@ app.get("/", (req, res) => {
 // process.env.PORT
 
 app.listen(process.env.PORT, () => {
-    console.log("Server is running on");
+  console.log("Server is running on");
 });
